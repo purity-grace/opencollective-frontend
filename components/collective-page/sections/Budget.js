@@ -4,10 +4,13 @@ import { useQuery } from '@apollo/client';
 import { isEmpty } from 'lodash';
 import { FormattedMessage, injectIntl } from 'react-intl';
 
+import hasFeature, { FEATURES } from '../../../lib/allowed-features';
 import { CollectiveType } from '../../../lib/constants/collectives';
 import { formatCurrency } from '../../../lib/currency-utils';
+import { getEnvVar } from '../../../lib/env-utils';
 import { GraphQLContext } from '../../../lib/graphql/context';
 import { API_V2_CONTEXT, gqlV2 } from '../../../lib/graphql/helpers';
+import { parseToBoolean } from '../../../lib/utils';
 
 import Container from '../../Container';
 import DefinedTerm, { Terms } from '../../DefinedTerm';
@@ -16,12 +19,14 @@ import Link from '../../Link';
 import MessageBox from '../../MessageBox';
 import StyledButton from '../../StyledButton';
 import StyledCard from '../../StyledCard';
-import { P, Span } from '../../Text';
+import { H3, P, Span } from '../../Text';
 import { transactionsQueryCollectionFragment } from '../../transactions/graphql/fragments';
 import TransactionsList from '../../transactions/TransactionsList';
 import { withUser } from '../../UserProvider';
 import ContainerSectionContent from '../ContainerSectionContent';
 import SectionTitle from '../SectionTitle';
+
+import SectionGoals from './Goals';
 
 export const budgetSectionQuery = gqlV2/* GraphQL */ `
   query BudgetSection($slug: String!, $limit: Int!) {
@@ -170,6 +175,22 @@ const SectionBudget = ({ collective, stats, LoggedInUser }) => {
           )}
         </StyledCard>
       </Flex>
+      {hasFeature(collective, FEATURES.COLLECTIVE_GOALS) && parseToBoolean(getEnvVar('NEW_COLLECTIVE_NAVBAR')) && (
+        <React.Fragment>
+          <Flex mb={3} justifyContent="space-between" alignItems="center" flexWrap="wrap">
+            <H3 fontSize="20px" fontWeight="600" color="black.700">
+              <FormattedMessage
+                id="Collective.Goals"
+                defaultMessage="{collective}'s Goals"
+                values={{
+                  collective: collective.name,
+                }}
+              />
+            </H3>
+          </Flex>
+          <SectionGoals collective={collective} />
+        </React.Fragment>
+      )}
     </ContainerSectionContent>
   );
 };

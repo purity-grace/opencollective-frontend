@@ -14,7 +14,7 @@ const GoalsCover = dynamic(() => import('../../GoalsCover'), {
 /**
  * Display the general goals for the collective
  */
-const SectionAbout = ({ collective }) => {
+const SectionGoals = ({ collective }) => {
   return (
     <Container background="rgb(245, 247, 250)" pt={5} pb={40}>
       <GoalsCover collective={collective} />
@@ -22,11 +22,11 @@ const SectionAbout = ({ collective }) => {
   );
 };
 
-SectionAbout.propTypes = {
+SectionGoals.propTypes = {
   /** The collective to display description for */
   collective: PropTypes.shape({
     settings: PropTypes.object,
   }).isRequired,
 };
 
-export default React.memo(SectionAbout);
+export default React.memo(SectionGoals);
