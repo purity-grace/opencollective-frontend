@@ -5,6 +5,7 @@ import { isEmpty } from 'lodash';
 import { FormattedMessage, injectIntl } from 'react-intl';
 
 import hasFeature, { FEATURES } from '../../../lib/allowed-features';
+import { getTopContributorsMemoized } from '../../../lib/collective.lib';
 import { CollectiveType } from '../../../lib/constants/collectives';
 import { formatCurrency } from '../../../lib/currency-utils';
 import { getEnvVar } from '../../../lib/env-utils';
@@ -19,13 +20,15 @@ import Link from '../../Link';
 import MessageBox from '../../MessageBox';
 import StyledButton from '../../StyledButton';
 import StyledCard from '../../StyledCard';
-import { H3, P, Span } from '../../Text';
+import { H3, H4, P, Span } from '../../Text';
 import { transactionsQueryCollectionFragment } from '../../transactions/graphql/fragments';
 import TransactionsList from '../../transactions/TransactionsList';
 import { withUser } from '../../UserProvider';
 import ContainerSectionContent from '../ContainerSectionContent';
 import SectionTitle from '../SectionTitle';
+import TopContributors from '../TopContributors';
 
+import { TopContributorsContainer } from './Contribute';
 import SectionGoals from './Goals';
 
 export const budgetSectionQuery = gqlV2/* GraphQL */ `
@@ -45,7 +48,7 @@ export const getBudgetSectionQueryVariables = slug => {
  * The budget section. Shows the expenses, the latests transactions and some statistics
  * abut the global budget of the collective.
  */
-const SectionBudget = ({ collective, stats, LoggedInUser }) => {
+const SectionBudget = ({ collective, stats, contributors, LoggedInUser }) => {
   const budgetQueryResult = useQuery(budgetSectionQuery, {
     variables: getBudgetSectionQueryVariables(collective.slug),
     context: API_V2_CONTEXT,
@@ -55,9 +58,40 @@ const SectionBudget = ({ collective, stats, LoggedInUser }) => {
     (stats.activeRecurringContributions?.monthly || 0) + (stats.activeRecurringContributions?.yearly || 0) / 12;
   const isFund = collective.type === CollectiveType.FUND;
   const isProject = collective.type === CollectiveType.PROJECT;
+  const isEvent = collective.type === CollectiveType.EVENT;
+  const [topOrganizations, topIndividuals] = getTopContributorsMemoized(contributors);
   React.useEffect(() => {
     refetch();
   }, [LoggedInUser]);
+
+  const renderNewSubsections = () => {
+    if (parseToBoolean(getEnvVar('NEW_COLLECTIVE_NAVBAR'))) {
+      return (
+        <React.Fragment>
+          {hasFeature(collective, FEATURES.COLLECTIVE_GOALS) && <SectionGoals collective={collective} />}
+          {!isEvent && (topOrganizations.length !== 0 || topIndividuals.length !== 0) && (
+            <TopContributorsContainer>
+              <Container maxWidth={1090} m="0 auto" px={[15, 30]}>
+                <H4 fontWeight="normal" color="black.700" mb={3}>
+                  <FormattedMessage
+                    id="SectionContribute.TopContributors"
+                    defaultMessage="Top financial contributors"
+                  />
+                </H4>
+                <TopContributors
+                  organizations={topOrganizations}
+                  individuals={topIndividuals}
+                  currency={collective.currency}
+                />
+              </Container>
+            </TopContributorsContainer>
+          )}
+        </React.Fragment>
+      );
+    } else {
+      return null;
+    }
+  };
 
   return (
     <ContainerSectionContent pt={[4, 5]} pb={3}>
@@ -175,22 +209,7 @@ const SectionBudget = ({ collective, stats, LoggedInUser }) => {
           )}
         </StyledCard>
       </Flex>
-      {hasFeature(collective, FEATURES.COLLECTIVE_GOALS) && parseToBoolean(getEnvVar('NEW_COLLECTIVE_NAVBAR')) && (
-        <React.Fragment>
-          <Flex mb={3} justifyContent="space-between" alignItems="center" flexWrap="wrap">
-            <H3 fontSize="20px" fontWeight="600" color="black.700">
-              <FormattedMessage
-                id="Collective.Goals"
-                defaultMessage="{collective}'s Goals"
-                values={{
-                  collective: collective.name,
-                }}
-              />
-            </H3>
-          </Flex>
-          <SectionGoals collective={collective} />
-        </React.Fragment>
-      )}
+      {renderNewSubsections()}
     </ContainerSectionContent>
   );
 };
@@ -213,6 +232,14 @@ SectionBudget.propTypes = {
     activeRecurringContributions: PropTypes.object,
     totalAmountReceived: PropTypes.number,
   }),
+
+  contributors: PropTypes.arrayOf(
+    PropTypes.shape({
+      type: PropTypes.oneOf(Object.values(CollectiveType)).isRequired,
+      isBacker: PropTypes.bool,
+      tiersIds: PropTypes.arrayOf(PropTypes.number),
+    }),
+  ),
 
   LoggedInUser: PropTypes.object,
 
