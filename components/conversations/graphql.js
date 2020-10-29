@@ -85,7 +85,7 @@ export const updateListFragment = gqlV2/* GraphQL */ `
       publishedAt
       isPrivate
       userCanSeeUpdate
-      fromCollective {
+      fromAccount {
         id
         type
         name

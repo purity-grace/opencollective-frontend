@@ -164,8 +164,8 @@ class SectionConnect extends React.PureComponent {
                 >
                   <Flex>
                     <Box mr={3}>
-                      <LinkCollective collective={update.fromCollective}>
-                        <Avatar collective={update.fromCollective} radius={40} />
+                      <LinkCollective collective={update.fromAccount}>
+                        <Avatar collective={update.fromAccount} radius={40} />
                       </LinkCollective>
                     </Box>
                     <Flex flexDirection="column" justifyContent="space-between">
@@ -224,7 +224,7 @@ class SectionConnect extends React.PureComponent {
                                 month: 'long',
                                 year: 'numeric',
                               }),
-                              author: <LinkCollective collective={update.fromCollective} />,
+                              author: <LinkCollective collective={update.fromAccount} />,
                             }}
                           />
                         ) : (
@@ -233,7 +233,7 @@ class SectionConnect extends React.PureComponent {
                             defaultMessage={'Created on {date} (draft) by {author}'}
                             values={{
                               date: formatDate(update.createdAt),
-                              author: <LinkCollective collective={update.fromCollective} />,
+                              author: <LinkCollective collective={update.fromAccount} />,
                             }}
                           />
                         )}

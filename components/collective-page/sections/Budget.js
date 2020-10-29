@@ -20,7 +20,7 @@ import Link from '../../Link';
 import MessageBox from '../../MessageBox';
 import StyledButton from '../../StyledButton';
 import StyledCard from '../../StyledCard';
-import { H3, H4, P, Span } from '../../Text';
+import { H4, P, Span } from '../../Text';
 import { transactionsQueryCollectionFragment } from '../../transactions/graphql/fragments';
 import TransactionsList from '../../transactions/TransactionsList';
 import { withUser } from '../../UserProvider';
